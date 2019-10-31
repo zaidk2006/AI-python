@@ -17,7 +17,7 @@ class StudentAI():
         self.color = 2
 
     def chooseBestMove(self, result):
-        max = -500
+        maxScore = -500
         brd = copy.deepcopy(self.board)
         bestMove = None
         for moves in result:
@@ -29,10 +29,9 @@ class StudentAI():
                 else:
                     score = brd.white_count - brd.black_count
                 score = score + len(move.seq)*10
-                if score > max:
-                    max = score
+                if score > maxScore:
+                    maxScore = score
                     bestMove = move
-
                 brd = copy.deepcopy(self.board)
 
         return bestMove
