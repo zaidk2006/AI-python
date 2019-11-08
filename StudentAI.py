@@ -5,6 +5,7 @@ import copy
 #The following part should be completed by students.
 #Students can modify anything except the class name and exisiting functions and varibles.
 class StudentAI():
+    bestMove = None
 
     def __init__(self,col,row,p):
         self.col = col
@@ -16,9 +17,10 @@ class StudentAI():
         self.opponent = {1:2,2:1}
         self.color = 2
         self.d = 3
-        self.bestMove = None
+        #self.bestMove = None
 
     def alphaBetaMinMax(self, board):
+	# initialize alpha and beta values 
         v = self.max_value(board, -10000, 10000, 0)
         """actions = board.get_all_possible_moves(self.color)
         for moves in actions:
@@ -30,20 +32,36 @@ class StudentAI():
                     return move
         return actions[0][0] 
         """
-        return self.bestMove
+	# use global bestMove
+        global bestMove
+	# alpha beta will return best move
+        return bestMove
 
     def max_value(self, board, alpha, beta, depth):
+	# get all possible moves for us
         actions = board.get_all_possible_moves(self.color)
+	# use global bestMove
+        global bestMove
+	# if cut-off test, return heauristic of state = score
         if(depth >= self.d or len(actions) == 0):
             return self.boardScore(board)
+	# initialize alpha to -inf
         v = -10000
+	# iterate through all actions
         for moves in actions:
+	    # iterate through each move per possible action
             for move in moves:
+		# make copy of board to manipulate
                 tmpBrd = copy.deepcopy(board)
+		# perform move on temp board
                 tmpBrd.make_move(move, self.color)
+		# get the max value between alpha and beta? 
                 v = max(v, self.min_value(tmpBrd, alpha, beta, depth+1))
-                self.bestMove = move
+		# set best move to current move
+                bestMove = move
+		# if
                 if v >= beta:
+                    bestMove = move
                     return v;
                 alpha = max(alpha, v)
         return v
