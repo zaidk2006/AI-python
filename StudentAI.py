@@ -5,7 +5,6 @@ import copy
 #The following part should be completed by students.
 #Students can modify anything except the class name and exisiting functions and varibles.
 class StudentAI():
-    bestMove = None
 
     def __init__(self,col,row,p):
         self.col = col
@@ -17,77 +16,57 @@ class StudentAI():
         self.opponent = {1:2,2:1}
         self.color = 2
         self.d = 3
-        #self.bestMove = None
+        self.bestMove = None
+        self.MIN = -1000
+        self.MAX = 1000
+        self.movePairs = {}
 
-    def alphaBetaMinMax(self, board):
-	# initialize alpha and beta values 
-        v = self.max_value(board, -10000, 10000, 0)
-        """actions = board.get_all_possible_moves(self.color)
-        for moves in actions:
-            for move in moves:
-                tmpBrd = copy.deepcopy(board)
-                tmpBrd.make_move(move, self.color)
-                score = self.boardScore(tmpBrd)
-                if score == v:
-                    return move
-        return actions[0][0] 
-        """
-	# use global bestMove
-        global bestMove
-	# alpha beta will return best move
-        return bestMove
+    def getBestMove(self):
+        #print("move pairs: ", self.movePairs)
+        bestVal = max(self.movePairs.keys())
+        return self.movePairs.get(bestVal)
+            	
 
-    def max_value(self, board, alpha, beta, depth):
-	# get all possible moves for us
-        actions = board.get_all_possible_moves(self.color)
-	# use global bestMove
-        global bestMove
-	# if cut-off test, return heauristic of state = score
-        if(depth >= self.d or len(actions) == 0):
-            return self.boardScore(board)
-	# initialize alpha to -inf
-        v = -10000
-	# iterate through all actions
-        for moves in actions:
-	    # iterate through each move per possible action
-            for move in moves:
-		# make copy of board to manipulate
-                tmpBrd = copy.deepcopy(board)
-		# perform move on temp board
-                tmpBrd.make_move(move, self.color)
-		# get the max value between alpha and beta? 
-                v = max(v, self.min_value(tmpBrd, alpha, beta, depth+1))
-		# set best move to current move
-                bestMove = move
-		# if
-                if v >= beta:
-                    bestMove = move
-                    return v;
-                alpha = max(alpha, v)
-        return v
+    def minimax(self, board, depth, color, isMaxPlayer, alpha, beta):
+        actions = board.get_all_possible_moves(color)
+        tempMoves = copy.deepcopy(actions)
+        if depth == 0 or len(actions) == 0:
+            return self.boardScore(board, color)
+        if isMaxPlayer:
+            bestVal = self.MIN
+            for moves in tempMoves:
+                for move in moves:
+                    tempBoard = copy.deepcopy(board)
+                    tempBoard.make_move(move, color)
+                    val = self.minimax(tempBoard, depth-1, self.opponent[color], False, alpha, beta)
+                    #getting the wrong move for different board = invalid move?
+                    self.movePairs.update( {val : move} )
+                    print("move pairs in max: ", self.movePairs)
+                    bestVal = max(bestVal, val)
+                    alpha = max(alpha, bestVal)
+                    if beta <= alpha:
+                        break
+            return bestVal
+        else:
+            bestVal = self.MAX
+            for moves in tempMoves:
+                for move in moves:
+                    tempBoard = copy.deepcopy(board)
+                    tempBoard.make_move(move, color)
+                    val = self.minimax(tempBoard, depth-1, self.opponent[color], True, alpha, beta)
+                    bestVal = min(bestVal, val)
+                    beta = min(beta, bestVal)
+                    if beta <= alpha:
+                        break
+            return bestVal
+            
 
-
-    def min_value(self, board, alpha, beta, depth):
-        actions = board.get_all_possible_moves(self.opponent[self.color])
-        if(depth >= self.d or len(actions) == 0):
-            return self.boardScore(board)
-        v = 10000
-        for moves in actions:
-            for move in moves:
-                tmpBrd = copy.deepcopy(board)
-                tmpBrd.make_move(move, self.opponent[self.color])
-                v = min(v, self.max_value(tmpBrd, alpha, beta, depth+1))
-                if v <= alpha:
-                    return v
-                beta = min(beta, v)
-       
-        return v
-
-
-    def boardScore(self, board):
-        if(self.color == 1):
+    def boardScore(self, board, color):
+        #print("black: ", board.black_count)
+        #print("white: ", board.white_count)
+        if(color == 1):
             return board.black_count - board.white_count
-        elif(self.color == 2):
+        elif(color == 2):
             return board.white_count - board.black_count
         else:
             return None
@@ -101,7 +80,9 @@ class StudentAI():
         #index = randint(0,len(moves)-1)
         #inner_index =  randint(0,len(moves[index])-1)
         #move = moves[index][inneir_index]
-        move = self.alphaBetaMinMax(self.board)
+        self.minimax(self.board, 3, self.color, True, self.MIN, self.MAX)
+        #print("val: ", val)
+        move = self.getBestMove()
         self.board.make_move(move ,self.color)
         return move
 
