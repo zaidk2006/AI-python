@@ -28,7 +28,7 @@ class StudentAI():
         bestVal = max(self.movePairs.keys())
         return self.movePairs.get(bestVal)
             	
-
+    # new alpha beta recursive function
     def minimax(self, board, depth, color, isMaxPlayer, alpha, beta):
         actions = board.get_all_possible_moves(color)
         if depth == 0 or len(actions) == 0:
