@@ -4,8 +4,9 @@ from BoardClasses import Board
 import copy
 #The following part should be completed by students.
 #Students can modify anything except the class name and exisiting functions and varibles.
+
+movePairs = {}
 class StudentAI():
-    movePairs = {}
 
     def __init__(self,col,row,p):
         self.col = col
@@ -23,13 +24,17 @@ class StudentAI():
         #self.movePairs = {}
 
     def getBestMove(self):
-        print("for player: ", self.color)
-        print("move pairs: ", self.movePairs)
-        bestVal = max(self.movePairs.keys())
-        return self.movePairs.get(bestVal)
+        #print("for player: ", self.color)
+        #print("move pairs: ", self.movePairs)
+        global movePairs
+        v = list(movePairs.values())
+        k = list(movePairs.keys())
+        bestMove = k[v.index(max(v))]
+        return bestMove
             	
     # new alpha beta recursive function
     def minimax(self, board, depth, color, isMaxPlayer, alpha, beta):
+        #global movePairs
         actions = board.get_all_possible_moves(color)
         if depth == 0 or len(actions) == 0:
             return self.boardScore(board, color)
@@ -42,9 +47,8 @@ class StudentAI():
                     tempBoard = copy.deepcopy(board)
                     tempBoard.make_move(move, color)
                     val = self.minimax(tempBoard, depth-1, self.opponent[color], False, alpha, beta)
-                    global movePairs
-                    movePairs.update( {val : move} )
-                    print("INSIDE MAX: ", self.movePairs)
+                    #movePairs.update( {val : move} )
+                    #print("INSIDE MAX: ", movePairs)
                     bestVal = max(bestVal, val)
                     alpha = max(alpha, bestVal)
                     if beta <= alpha:
@@ -73,15 +77,26 @@ class StudentAI():
             return None
         
     def get_move(self,move):
+        global movePairs
         if len(move) != 0:
             self.board.make_move(move,self.opponent[self.color])
         else:
             self.color = 1
-        moves = self.board.get_all_possible_moves(self.color)
 
-        self.minimax(self.board, 3, self.color, True, self.MIN, self.MAX)
-        move = self.getBestMove()
-        self.board.make_move(move, self.color)
-        return move
+        actions = self.board.get_all_possible_moves(self.color)
+        #bestScore = -1000
+        bestMove = actions[0][0]
+        for moves in actions:
+            for move in moves:
+                tempBoard = copy.deepcopy(self.board)
+                tempBoard.make_move(move, self.color)
+                movePairs[move] = self.minimax(tempBoard, 3, self.color, True, self.MIN, self.MAX)
+
+        v = list(movePairs.values())
+        k = list(movePairs.keys())
+        bestMove = k[v.index(max(v))]
+        movePairs.clear()
+        self.board.make_move(bestMove, self.color)
+        return bestMove
 
 
