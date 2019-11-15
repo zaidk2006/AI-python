@@ -91,7 +91,7 @@ class StudentAI():
                 tempBoard = copy.deepcopy(self.board)
                 tempBoard.make_move(move, self.color)
                 movePairs[move] = self.minimax(tempBoard, 3, self.color, True, self.MIN, self.MAX)
-
+        # my comment
         v = list(movePairs.values())
         k = list(movePairs.keys())
         bestMove = k[v.index(max(v))]
