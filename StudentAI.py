@@ -46,13 +46,13 @@ class StudentAI():
                 for move in moves:
                     tempBoard = copy.deepcopy(board)
                     tempBoard.make_move(move, color)
-                    val = self.minimax(tempBoard, depth-1, self.opponent[color], False, alpha, beta)
+                    val = self.minimax(board, depth-1, self.opponent[color], False, alpha, beta)
                     #movePairs.update( {val : move} )
                     #print("INSIDE MAX: ", movePairs)
                     bestVal = max(bestVal, val)
                     alpha = max(alpha, bestVal)
                     if beta <= alpha:
-                        break
+                        return bestVal
             return bestVal
         else:
             bestVal = self.MAX
@@ -60,11 +60,11 @@ class StudentAI():
                 for move in moves:
                     tempBoard = copy.deepcopy(board)
                     tempBoard.make_move(move, color)
-                    val = self.minimax(tempBoard, depth-1, self.opponent[color], True, alpha, beta)
+                    val = self.minimax(board, depth-1, self.opponent[color], True, alpha, beta)
                     bestVal = min(bestVal, val)
                     beta = min(beta, bestVal)
                     if beta <= alpha:
-                        break
+                        return bestVal
             return bestVal
             
 
@@ -84,18 +84,28 @@ class StudentAI():
             self.color = 1
 
         actions = self.board.get_all_possible_moves(self.color)
-        #bestScore = -1000
-        bestMove = actions[0][0]
+        #tempMoves = copy.deepcopy(actions)
+        bestScore = -1000
+        index = randint(0, len(actions) - 1)
+        #index = 0
+        innerIndex = randint(0, len(actions[index]) - 1)   
+        #innerIndex = randint(0, len([for moves in tempMoves]) - 1)
+        bestMove = actions[index][innerIndex]
         for moves in actions:
             for move in moves:
                 tempBoard = copy.deepcopy(self.board)
                 tempBoard.make_move(move, self.color)
-                movePairs[move] = self.minimax(tempBoard, 3, self.color, True, self.MIN, self.MAX)
-        # my comment
+                val = self.minimax(tempBoard, 3, self.color, True, self.MIN, self.MAX)
+                if val > bestScore:
+                    bestMove = move
+                    bestScore = val
+        #my comment
+        """
         v = list(movePairs.values())
         k = list(movePairs.keys())
         bestMove = k[v.index(max(v))]
         movePairs.clear()
+        """
         self.board.make_move(bestMove, self.color)
         return bestMove
 
