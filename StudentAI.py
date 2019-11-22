@@ -6,7 +6,6 @@ import math
 #The following part should be completed by students.
 #Students can modify anything except the class name and exisiting functions and varibles.
 
-movePairs = {}
 class StudentAI():
 
     def __init__(self,col,row,p):
@@ -22,16 +21,8 @@ class StudentAI():
         self.MIN = -1000
         self.MAX = 1000
 
-    def getBestMove(self):
-        global movePairs
-        v = list(movePairs.values())
-        k = list(movePairs.keys())
-        bestMove = k[v.index(max(v))]
-        return bestMove
-            	
     # new alpha beta recursive function
     def minimax(self, board, depth, color, isMaxPlayer, alpha, beta):
-        #global movePairs
         actions = board.get_all_possible_moves(color)
         if depth == 0 or len(actions) == 0:
             return self.boardScore(board, color)
@@ -47,7 +38,6 @@ class StudentAI():
                     alpha = max(alpha, bestVal)
                     if beta <= alpha:
                         break
-            #return bestVal
         else:
             bestVal = math.inf
             for moves in actions:
@@ -59,48 +49,48 @@ class StudentAI():
                     beta = min(beta, bestVal)
                     if beta <= alpha:
                         break
-            #return bestVal
         return bestVal
 
-    def boardScore(self, board, color):
-        if(color == 1):
-            return (board.black_count - board.white_count)
-            #return self.smart_count(board, 1) - self.smart_count(board, 2)
-        elif(color == 2):
-            #return self.smart_count(board, 2) - self.smart_count(board, 1)
-            return (board.white_count - board.black_count)
-        else:
-            return None
- 
-    def smart_count(self, board, color):
-        result = 0.0
+      
+    def kingCount(self, board, color):
+        kingCnt = 0
+        checkerColor = ''
 
-        color_char = ''
         if color == 1:
-            color_char = 'B'
+            checkerColor = 'B'
         else:
-            color_char = 'W'
+            checkerColor = 'W'
 
         for i in range(len(board.board)):
             for j in range(len(board.board[i])):
-                piece_val = 5.0
-                if board.board[i][j].color == color_char:
+                if board.board[i][j].color == checkerColor:
                     if board.board[i][j].is_king:
-                        piece_val += 12.5
-                    if i == 0 or j == 0 or i == len(board.board) - 1 or j == len(board.board[0]) - 1:
-                        piece_val += 2.0
+                        kingCnt += 1
+        return kingCnt
 
-                result+=piece_val
-
-        #print(edge, " and ", normal)
-        return result
-
-    def get_move(self,move):
-        if len(move) != 0:
-            self.board.make_move(move,self.opponent[self.color])
+    
+    def checkersDiff(self, board, color):
+        if(color == 1):
+            return board.black_count - board.white_count
         else:
-            self.color = 1
+            return board.white_count - board.black_count
 
+    
+    def numOfMoves(self, board, color):
+        moves = board.get_all_possible_moves(color)
+        moves = sum(moves, [])
+        return len(moves)
+
+
+    def boardScore(self, board, color):
+        score = 0
+        score += 2 * self.checkersDiff(board, color)
+        score += 5 * self.kingCount(board, color)
+ 
+        return score
+   
+    
+    def boardBestMove(self):
         actions = self.board.get_all_possible_moves(self.color)
         bestScore = -math.inf
         index = randint(0, len(actions) - 1)
@@ -114,11 +104,20 @@ class StudentAI():
                 #ok with Random: depth = 4, self.color, False
                 #good with Random: depth = 3, self.opponent, False/True
                 val = self.minimax(tempBoard, 3, self.opponent[self.color], True, -math.inf, math.inf)
-                #print ("Value : move = %s : %s" % (val, move))
                 if val > bestScore:
                     bestMove = move
                     bestScore = val
 
+        return bestMove
+ 
+
+    def get_move(self,move):
+        if len(move) != 0:
+            self.board.make_move(move,self.opponent[self.color])
+        else:
+            self.color = 1
+
+        bestMove = self.boardBestMove()
         self.board.make_move(bestMove, self.color)
         return bestMove
 
