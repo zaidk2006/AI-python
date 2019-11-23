@@ -23,12 +23,12 @@ class StudentAI():
 
     # new alpha beta recursive function
     def minimax(self, board, depth, color, isMaxPlayer, alpha, beta):
-        actions = board.get_all_possible_moves(color)
-        if depth == 0 or len(actions) == 0:
+        if depth == 0:
             return self.boardScore(board, color)
 
+        actions = board.get_all_possible_moves(color)
         if isMaxPlayer:
-            bestVal = -math.inf
+            bestVal = float('-inf')
             for moves in actions:
                 for move in moves:
                     tempBoard = copy.deepcopy(board)
@@ -39,7 +39,7 @@ class StudentAI():
                     if beta <= alpha:
                         break
         else:
-            bestVal = math.inf
+            bestVal = float('inf')
             for moves in actions:
                 for move in moves:
                     tempBoard = copy.deepcopy(board)
@@ -52,8 +52,13 @@ class StudentAI():
         return bestVal
 
       
-    def kingCount(self, board, color):
+    def checkerEdgeCount(self, i, j, boardRow, boardColumn):
+        return (i == 0 or j == 0 or i == boardRow - 1 or j == boardColumn - 1)
+
+
+    def checkerEval(self, board, color):
         kingCnt = 0
+        checkerScore = 0
         checkerColor = ''
 
         if color == 1:
@@ -63,10 +68,12 @@ class StudentAI():
 
         for i in range(len(board.board)):
             for j in range(len(board.board[i])):
-                if board.board[i][j].color == checkerColor:
-                    if board.board[i][j].is_king:
-                        kingCnt += 1
-        return kingCnt
+                if board.board[i][j].color == checkerColor and board.board[i][j].is_king:
+                    kingCnt += 1
+                if self.checkerEdgeCount(i, j, len(board.board), len(board.board[0])):
+                    checkerScore += 5
+
+        return (10 * kingCnt) + checkerScore
 
     
     def checkersDiff(self, board, color):
@@ -84,9 +91,9 @@ class StudentAI():
 
     def boardScore(self, board, color):
         score = 0
-        score += 2 * self.checkersDiff(board, color)
-        score += 5 * self.kingCount(board, color)
- 
+        score += 3 * self.checkersDiff(board, color)
+        score += 2 * self.checkerEval(board, color)
+        score += 2 * self.numOfMoves(board, color) 
         return score
    
     
@@ -103,7 +110,7 @@ class StudentAI():
                 #Tie with Poor AI: depth = 3, self.opponent, True
                 #ok with Random: depth = 4, self.color, False
                 #good with Random: depth = 3, self.opponent, False/True
-                val = self.minimax(tempBoard, 3, self.opponent[self.color], True, -math.inf, math.inf)
+                val = self.minimax(tempBoard, 3, self.opponent[self.color], False, -math.inf, math.inf)
                 if val > bestScore:
                     bestMove = move
                     bestScore = val
