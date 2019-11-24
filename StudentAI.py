@@ -33,7 +33,7 @@ class StudentAI():
                 for move in moves:
                     tempBoard = copy.deepcopy(board)
                     tempBoard.make_move(move, color)
-                    val = self.minimax(tempBoard, depth-1, self.opponent[color], False, alpha, beta)
+                    val = self.minimax(tempBoard, depth-1, self.opponent[color], not isMaxPlayer, alpha, beta)
                     bestVal = max(bestVal, val)
                     alpha = max(alpha, bestVal)
                     if beta <= alpha:
@@ -44,7 +44,7 @@ class StudentAI():
                 for move in moves:
                     tempBoard = copy.deepcopy(board)
                     tempBoard.make_move(move, color)
-                    val = self.minimax(tempBoard, depth-1, self.opponent[color], True, alpha, beta)
+                    val = self.minimax(tempBoard, depth-1, self.opponent[color], not isMaxPlayer, alpha, beta)
                     bestVal = min(bestVal, val)
                     beta = min(beta, bestVal)
                     if beta <= alpha:
@@ -52,8 +52,8 @@ class StudentAI():
         return bestVal
 
       
-    def checkerEdgeCount(self, i, j, boardRow, boardColumn):
-        return (i == 0 or j == 0 or i == boardRow - 1 or j == boardColumn - 1)
+    def isCheckerEdge(self, i, j, boardRow, boardColumn):
+        return (i == 0 or i == boardRow - 1 or j == 0 or j == boardColumn - 1)
 
 
     def checkerEval(self, board, color):
@@ -70,8 +70,8 @@ class StudentAI():
             for j in range(len(board.board[i])):
                 if board.board[i][j].color == checkerColor and board.board[i][j].is_king:
                     kingCnt += 1
-                if self.checkerEdgeCount(i, j, len(board.board), len(board.board[0])):
-                    checkerScore += 5
+                if self.isCheckerEdge(i, j, len(board.board), len(board.board[0])):
+                    checkerScore += 1
 
         return (10 * kingCnt) + checkerScore
 
@@ -82,24 +82,17 @@ class StudentAI():
         else:
             return board.white_count - board.black_count
 
-    
-    def numOfMoves(self, board, color):
-        moves = board.get_all_possible_moves(color)
-        moves = sum(moves, [])
-        return len(moves)
-
 
     def boardScore(self, board, color):
         score = 0
-        score += 3 * self.checkersDiff(board, color)
-        score += 2 * self.checkerEval(board, color)
-        score += 2 * self.numOfMoves(board, color) 
+        score += 5 * self.checkersDiff(board, color)
+        score += self.checkerEval(board, color) - self.checkerEval(board, self.opponent[color])
         return score
    
     
     def boardBestMove(self):
         actions = self.board.get_all_possible_moves(self.color)
-        bestScore = -math.inf
+        bestScore = float('-inf')
         index = randint(0, len(actions) - 1)
         innerIndex = randint(0, len(actions[index]) - 1)   
         bestMove = actions[index][innerIndex]
@@ -107,9 +100,6 @@ class StudentAI():
             for move in moves:
                 tempBoard = copy.deepcopy(self.board)
                 tempBoard.make_move(move, self.color)
-                #Tie with Poor AI: depth = 3, self.opponent, True
-                #ok with Random: depth = 4, self.color, False
-                #good with Random: depth = 3, self.opponent, False/True
                 val = self.minimax(tempBoard, 3, self.opponent[self.color], False, -math.inf, math.inf)
                 if val > bestScore:
                     bestMove = move
