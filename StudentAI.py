@@ -3,6 +3,7 @@ from BoardClasses import Move
 from BoardClasses import Board
 import copy
 import math
+import random
 #The following part should be completed by students.
 #Students can modify anything except the class name and exisiting functions and varibles.
 
@@ -65,11 +66,15 @@ class StudentAI():
             checkerColor = 'B'
         else:
             checkerColor = 'W'
-
+      
         for i in range(len(board.board)):
             for j in range(len(board.board[i])):
                 if board.board[i][j].color == checkerColor and board.board[i][j].is_king:
                     kingCnt += 1
+                    #kings are more effective when they are in the middle of the board (tried this but didn't work)
+                    #dist = math.sqrt((j - len(board.board)/2)**2 + (i - len(board.board[i])/2)**2)
+                    #if dist < 2:
+                    #    checkerScore += 5
                 if self.isCheckerEdge(i, j, len(board.board), len(board.board[0])):
                     checkerScore += 1
 
@@ -91,6 +96,7 @@ class StudentAI():
    
     
     def boardBestMove(self):
+        moveScore = {}
         actions = self.board.get_all_possible_moves(self.color)
         bestScore = float('-inf')
         index = randint(0, len(actions) - 1)
@@ -101,10 +107,19 @@ class StudentAI():
                 tempBoard = copy.deepcopy(self.board)
                 tempBoard.make_move(move, self.color)
                 val = self.minimax(tempBoard, 3, self.opponent[self.color], False, -math.inf, math.inf)
-                if val > bestScore:
-                    bestMove = move
-                    bestScore = val
+                moveScore[move] = val
+                #if val > bestScore:
+                #    bestMove = move
+                #    bestScore = val
 
+        #adds random factor
+        v = list(moveScore.values())
+        allBestMoves = []
+        maxValue = max(v)
+        for move, score in moveScore.items():
+            if score == maxValue:
+                allBestMoves.append(move)
+        bestMove = random.choice(allBestMoves)        
         return bestMove
  
 
