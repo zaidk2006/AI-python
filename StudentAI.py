@@ -75,15 +75,17 @@ class StudentAI():
 
                     # the following checks if king is in middle of board for 'B' or 'W'
                     midBoard = len(board.board)/2
+                    #print ("mid board: ", midBoard)
                     if (len(board.board) % 2) == 0: # even
                         if checkerColor == 'B' and (i == midBoard or i == midBoard + 1):
                             checkerScore += 5
                         elif checkerColor == 'W' and (i == midBoard - 1 or i == midBoard - 2):
                             checkerScore += 5
                     else: # odd
-                        if checkerColor == 'B' and (i == midBoard or i == midBoard + 1):
+                        if checkerColor == 'B' and (i == math.floor(midBoard) + 1 or i == math.floor(midBoard)):
+                            #print ("i: ", i)
                             checkerScore += 5
-                        elif checkerColor == 'W' and (i == midBoard or i == midBoard - 1):
+                        elif checkerColor == 'W' and (i == math.floor(midBoard) or i == math.floor(midBoard) - 1):
                             checkerScore += 5 
                            
                             
