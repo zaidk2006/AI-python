@@ -54,9 +54,10 @@ class StudentAI():
 
       
     def isCheckerEdge(self, i, j, boardRow, boardColumn):
-        return (i == 0 or i == boardRow - 1 or j == 0 or j == boardColumn - 1)
+        return (i == 0 or i == boardRow - 1 or j == 0 or j == boardColumn - 1) # i=0, j=0 checks top left hand : boardRow-1, boardColumn-1 checks bot right _|
 
-
+    # score weighted by: # kings, checker evaluation 
+    # used to evaluate kings for both us and then opponent
     def checkerEval(self, board, color):
         kingCnt = 0
         checkerScore = 0
@@ -66,35 +67,61 @@ class StudentAI():
             checkerColor = 'B'
         else:
             checkerColor = 'W'
-      
-        for i in range(len(board.board)):
-            for j in range(len(board.board[i])):
-                if board.board[i][j].color == checkerColor and board.board[i][j].is_king:
+        # iterate through each spot on board
+        for i in range(len(board.board)): # rows
+            for j in range(len(board.board[i])): # columns
+                if board.board[i][j].color == checkerColor and board.board[i][j].is_king: # check if it's our king or opponent's king
                     kingCnt += 1
+
+                    # the following checks if king is in middle of board for 'B' or 'W'
+                    midBoard = len(board.board)/2
+                    if (len(board.board) % 2) == 0: # even
+                        if checkerColor == 'B' and (i == midBoard or i == midBoard + 1):
+                            checkerScore += 5
+                        elif checkerColor == 'W' and (i == midBoard - 1 or i == midBoard - 2):
+                            checkerScore += 5
+                    else: # odd
+                        if checkerColor == 'B' and (i == midBoard or i == midBoard + 1):
+                            checkerScore += 5
+                        elif checkerColor == 'W' and (i == midBoard or i == midBoard - 1):
+                            checkerScore += 5 
+                           
+                            
                     #kings are more effective when they are in the middle of the board (tried this but didn't work)
                     #dist = math.sqrt((j - len(board.board)/2)**2 + (i - len(board.board[i])/2)**2)
                     #if dist < 2:
                     #    checkerScore += 5
-                if self.isCheckerEdge(i, j, len(board.board), len(board.board[0])):
+                if self.isCheckerEdge(i, j, len(board.board), len(board.board[0])): # check if checker is at edge?
                     checkerScore += 1
-
+                # wins sometimes as White
+                if (len(board.board) % 2) == 0: # even 
+                    if board.board[i][j].color == checkerColor and checkerColor == 'B' and (i >= len(board.board)/2):
+                        checkerScore += 3
+                    elif board.board[i][j].color == checkerColor and checkerColor == 'W' and (i < len(board.board)/2):
+                        checkerScore += 3
+                else: # odd
+                    if board.board[i][j].color == checkerColor and checkerColor == 'B' and (i >= math.ceil(len(board.board)/2)):
+                        checkerScore += 3
+                    elif board.board[i][j].color == checkerColor and checkerColor == 'W' and (i < math.floor(len(board.board)/2)):
+                        checkerScore += 3
+        # 10 weight
         return (10 * kingCnt) + checkerScore
 
-    
     def checkersDiff(self, board, color):
         if(color == 1):
             return board.black_count - board.white_count
         else:
             return board.white_count - board.black_count
 
-
+    # calculate score of board
     def boardScore(self, board, color):
         score = 0
+        # 5 weight
         score += 5 * self.checkersDiff(board, color)
-        score += self.checkerEval(board, color) - self.checkerEval(board, self.opponent[color])
+        score += self.checkerEval(board, color) - self.checkerEval(board, self.opponent[color]) 
         return score
    
-    
+    # choose best move
     def boardBestMove(self):
         moveScore = {}
         actions = self.board.get_all_possible_moves(self.color)
@@ -106,19 +133,17 @@ class StudentAI():
             for move in moves:
                 tempBoard = copy.deepcopy(self.board)
                 tempBoard.make_move(move, self.color)
-                val = self.minimax(tempBoard, 3, self.opponent[self.color], False, -math.inf, math.inf)
+                val = self.minimax(tempBoard, 3, self.opponent[self.color], False, -math.inf, math.inf) 
+                # store move and val 
                 moveScore[move] = val
-                #if val > bestScore:
-                #    bestMove = move
-                #    bestScore = val
 
         #adds random factor
-        v = list(moveScore.values())
+        v = list(moveScore.values()) # make list of values
         allBestMoves = []
         maxValue = max(v)
-        for move, score in moveScore.items():
+        for move, score in moveScore.items(): # .items() turns dictionary into list
             if score == maxValue:
-                allBestMoves.append(move)
+                allBestMoves.append(move) # find all moves with same max score
         bestMove = random.choice(allBestMoves)        
         return bestMove
  
