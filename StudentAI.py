@@ -4,6 +4,7 @@ from BoardClasses import Board
 import copy
 import math
 import random
+from timeit import default_timer as timer
 #The following part should be completed by students.
 #Students can modify anything except the class name and exisiting functions and varibles.
 
@@ -56,11 +57,27 @@ class StudentAI():
     def isCheckerEdge(self, i, j, boardRow, boardColumn):
         return (i == 0 or i == boardRow - 1 or j == 0 or j == boardColumn - 1) # i=0, j=0 checks top left hand : boardRow-1, boardColumn-1 checks bot right _|
 
+    def isHalfway(self, i, board, color):
+        midBoard = len(board.board)/2
+        if len(board.board) % 2 == 0: # rows is even
+            return (color == 'B' and (i == midBoard or i == midBoard+1)) or (color == 'W' and (i == midBoard-1 or i == midBoard-2))
+        else:
+            return (color == 'B' and (i == math.floor(midBoard)+1 or i == math.floor(midBoard))) or (color == 'W' and (i == math.floor(midBoard) or i == math.floor(midBoard)-1)) 
+                
+    def isAdvPawn(self, i, board, color):
+        midBoard = len(board.board)/2
+        if len(board.board) % 2 == 0:
+            return (color == 'B' and (i >= midBoard)) or (color == 'W' and (i < midBoard))
+        else:
+            return (color == 'B' and (i >= math.ceil(midBoard))) or (color == 'W' and (i < math.floor(midBoard)))
+
     # score weighted by: # kings, checker evaluation 
     # used to evaluate kings for both us and then opponent
     def checkerEval(self, board, color):
         kingCnt = 0
+        oppKingCnt = 0
         checkerScore = 0
+        oppCheckerScore = 0
         checkerColor = ''
 
         if color == 1:
@@ -70,45 +87,35 @@ class StudentAI():
         # iterate through each spot on board
         for i in range(len(board.board)): # rows
             for j in range(len(board.board[i])): # columns
-                if board.board[i][j].color == checkerColor and board.board[i][j].is_king: # check if it's our king or opponent's king
-                    kingCnt += 1
+                if board.board[i][j].is_king: # piece is a king
+                    if board.board[i][j].color == checkerColor: # our king
+                        kingCnt += 1
+                        if self.isHalfway(i, board, checkerColor): # if our king halfway
+                            checkerScore += 5
+                    else: # opponent's king
+                        oppKingCnt += 1
+                        if self.isHalfway(i, board, board.board[i][j].color): # if opponent king halfway
+                            oppCheckerScore += 5
 
-                    # the following checks if king is in middle of board for 'B' or 'W'
-                    midBoard = len(board.board)/2
-                    #print ("mid board: ", midBoard)
-                    if (len(board.board) % 2) == 0: # even
-                        if checkerColor == 'B' and (i == midBoard or i == midBoard + 1):
-                            checkerScore += 5
-                        elif checkerColor == 'W' and (i == midBoard - 1 or i == midBoard - 2):
-                            checkerScore += 5
-                    else: # odd
-                        if checkerColor == 'B' and (i == math.floor(midBoard) + 1 or i == math.floor(midBoard)):
-                            #print ("i: ", i)
-                            checkerScore += 5
-                        elif checkerColor == 'W' and (i == math.floor(midBoard) or i == math.floor(midBoard) - 1):
-                            checkerScore += 5 
-                           
-                            
-                    #kings are more effective when they are in the middle of the board (tried this but didn't work)
-                    #dist = math.sqrt((j - len(board.board)/2)**2 + (i - len(board.board[i])/2)**2)
-                    #if dist < 2:
-                    #    checkerScore += 5
-                if self.isCheckerEdge(i, j, len(board.board), len(board.board[0])): # check if checker is at edge?
+                else: # piece is a pawn
+                    if board.board[i][j].color == checkerColor: # evaluate advance pawn for ours
+                        if self.isAdvPawn(i, board, checkerColor):
+                            checkerScore += 3
+                    else: # evaluate advance pawn for opponent 
+                        if self.isAdvPawn(i, board, board.board[i][j].color):
+                            oppCheckerScore += 3 
+                  
+                if self.isCheckerEdge(i, j, len(board.board), len(board.board[0])): # piece is an edge piece
                     checkerScore += 1
-                # wins sometimes as White
-                if (len(board.board) % 2) == 0: # even 
-                    if board.board[i][j].color == checkerColor and checkerColor == 'B' and (i >= len(board.board)/2):
-                        checkerScore += 3
-                    elif board.board[i][j].color == checkerColor and checkerColor == 'W' and (i < len(board.board)/2):
-                        checkerScore += 3
-                else: # odd
-                    if board.board[i][j].color == checkerColor and checkerColor == 'B' and (i >= math.ceil(len(board.board)/2)):
-                        checkerScore += 3
-                    elif board.board[i][j].color == checkerColor and checkerColor == 'W' and (i < math.floor(len(board.board)/2)):
-                        checkerScore += 3
-        # 10 weight
-        return (10 * kingCnt) + checkerScore
+                    """
+                    if board.board[i][i].color == checkerColor: # our edge piece
+                        checkerScore += 1
+                    else: # opponent's edge piece
+                        oppCheckerScore += 1
+                    """
+        return ((10*kingCnt + checkerScore) - (10*oppKingCnt + oppCheckerScore))
 
+                  
     def checkersDiff(self, board, color):
         if(color == 1):
             return board.black_count - board.white_count
@@ -120,7 +127,7 @@ class StudentAI():
         score = 0
         # 5 weight
         score += 5 * self.checkersDiff(board, color)
-        score += self.checkerEval(board, color) - self.checkerEval(board, self.opponent[color]) 
+        score += self.checkerEval(board, color) 
         return score
    
     # choose best move
@@ -155,7 +162,6 @@ class StudentAI():
             self.board.make_move(move,self.opponent[self.color])
         else:
             self.color = 1
-
         bestMove = self.boardBestMove()
         self.board.make_move(bestMove, self.color)
         return bestMove

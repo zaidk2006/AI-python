@@ -5,6 +5,7 @@ from AI_Extensions import *
 #from StudentAI import StudentAI
 from StudentAI import StudentAI
 from ManualAI import ManualAI
+from timeit import default_timer as timer
 
 class GameLogic:
 
@@ -15,6 +16,8 @@ class GameLogic:
         self.mode = mode
         self.debug = debug
         self.ai_list = []
+     
+        self.totalTime = []
 
     def gameloop(self,fh=None):
         player = 1
@@ -23,8 +26,12 @@ class GameLogic:
         board = Board(self.col,self.row,self.p)
         board.initialize_game()
         board.show_board(fh)
+
         while True:
             try:
+                if (player == 2):
+                    start = timer()
+                    # print ("start: ", start)
                 move = self.ai_list[player-1].get_move(move)
             except:
                 import traceback
@@ -37,6 +44,12 @@ class GameLogic:
                 break
             try:
                 board.make_move(move,player)
+                if (player == 2):
+                    end = timer()
+                    dif = end - start
+                   # print ("end: ", end)    
+                   # print ("dif: ", dif)
+                    self.totalTime.append(dif)
             except InvalidMoveError:
                 print("Invalid Move!",file=fh)
                 if player == 1:
@@ -67,6 +80,7 @@ class GameLogic:
             for AI in self.ai_list:
                 if type(AI) is IOAI:
                     AI.close()
+        print ("THIS IT: ", sum(self.totalTime))
         return winPlayer
 
     def TournamentInterface(self):

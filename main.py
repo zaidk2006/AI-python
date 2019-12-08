@@ -72,6 +72,7 @@ if __name__ == "__main__":
 
     # Because the initialization of network mode is different from the normal modes,
     # the initialization of network mode is separated from other modes.
+
     if len(sys.argv) == 3:
         mode = sys.argv[1]
         if mode == 'n' or mode == 'network':
@@ -122,3 +123,4 @@ if __name__ == "__main__":
     elif mode == 'l':
         ai_path_1,ai_path_2 =  sys.argv[5],sys.argv[6]
         main.Run(mode=mode,ai_path_1=ai_path_1,ai_path_2=ai_path_2,time=1200)
+
